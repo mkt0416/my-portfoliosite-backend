@@ -3,12 +3,12 @@ const router = require('express').Router();
 const { body } = require('express-validator');
 const User = require('../models/user');
 const validation = require('../handlers/validation');
-const userControllers = require('../controllers/user');
+const userControllers = require('../controllers/auth');
 const tokenHandler = require('../handlers/tokenHandler');
 
 // ユーザー登録
 router.post('/register',
-    body('name')
+    body('username')
         .isLength({ min: 3 })
         .withMessage('ユーザー名は3文字以上である必要があります'),
     body('password')
@@ -17,8 +17,8 @@ router.post('/register',
     body('confirmPassword')
         .isLength({ min: 8 })
         .withMessage('確認用パスワードは8文字以上である必要があります'),
-    body('name').custom((value) => {
-        return User.findOne({ name: value }).then((user) => {
+    body('username').custom((value) => {
+        return User.findOne({ username: value }).then((user) => {
             if (user) {
                 return Promise.reject('このユーザー名はすでに使われています');
             }
@@ -30,7 +30,7 @@ router.post('/register',
 
 // ログイン
 router.post('/login',
-    body('name')
+    body('username')
         .isLength({ min: 3 })
         .withMessage('ユーザー名は3文字以上である必要があります'),
     body('password')

@@ -1,61 +1,127 @@
 
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 
-exports.register = async (req, res) => {
-    try {
-        const password = req.body.password;
-        // パスワードの暗号化
-        const hashedPassword = await bcrypt.hash(password, 8);
-        // ユーザーの新規作成
-        const userData = {
-            ...req.body,
-            password: hashedPassword,
-        };
-        const user = await User.create(userData);
-        return res.status(201).json({ message: 'ユーザー登録成功', user });
-    } catch (err) {
-        console.log(err);
-        return res.status(500).json({ message: 'ユーザー登録失敗', err });
+exports.updateUser = async (req, res) => {
+    if (req.params.id === req.body.userId) {
+        try {
+            const user = await User.findByIdAndUpdate(req.params.id,
+                { $set: req.body },
+                { new: true },
+            );
+            return res.status(200).json({ message: 'ユーザー情報が更新されました', user });
+        } catch (err) {
+            console.log(err);
+            return res.status(500).json(err);
+        }
+    } else {
+        return res.status(403).json({ message: 'あなたは自分のアカウントの時だけ情報を更新できます' });
     }
 };
 
-exports.login = async (req, res) => {
+exports.deleteUser = async (req, res) => {
+    if (req.params.id === req.body.userId) {
+        try {
+            const user = await User.findByIdAndDelete(req.params.id);
+            return res.status(200).json({ message: 'ユーザー情報が削除されました' });
+        } catch (err) {
+            console.log(err);
+            return res.status(500).json(err);
+        }
+    } else {
+        return res.status(403).json({ message: 'あなたは自分のアカウントの時だけ情報を削除できます' });
+    }
+};
+
+exports.getSingleUser = async (req, res) => {
+    const userId = req.query.userId;
+    const username = req.query.username;
     try {
-        const { name, password } = req.body;
-        // データベースからユーザーを探してくる
-        const user = await User.findOne({ name });
-        if (!user) {
-            return res.status(400).json({
-                errors: [
-                    {
-                        path: 'name',
-                        msg: 'ユーザー名が無効です',
-                    }
-                ],
-            });
-        }
-        // パスワードの比較
-        const passwordValid = await bcrypt.compare(password, user.password);
-        if (!passwordValid) {
-            return res.status(400).json({
-                errors: [
-                    {
-                        path: 'password',
-                        msg: 'パスワードが無効です',
-                    }
-                ],
-            });
-        }
-        // JWTの発行
-        const token = jwt.sign({ id: user._id }, process.env.TOKEN_SECRET_KEY, {
-            algorithm: 'HS256',
-            expiresIn: '1d',
-        });
-        return res.status(200).json({ message: 'ログイン成功', user, token });
+        const user = userId
+            ? await User.findById(userId)
+            : await User.findOne({ username: username })
+        const { password, UpdatedAt, ...other } = user._doc;
+        return res.status(200).json(other);
     } catch (err) {
         console.log(err);
-        return res.status(500).json({ message: 'ログイン失敗', err });
+        return res.status(500).json(err);
+    }
+};
+
+exports.followUser = async (req, res) => {
+    if (req.params.id !== req.body.userId) {
+        try {
+            const user = await User.findById(req.params.id);
+            const currnetUser = await User.findById(req.body.userId);
+            //フォロワーに自分がいなかったらフォローできる
+            if (!user.followers.includes(req.body.userId)) {
+                await user.updateOne({
+                    $push: {
+                        followers: req.body.userId,
+                    },
+                });
+                await currnetUser.updateOne({
+                    $push: {
+                        followings: req.params.id,
+                    },
+                });
+                return res.status(200).json({ message: 'フォローに成功しました！' });
+            } else {
+                return res.status(403).json({ message: 'あなたはすでにこのユーザーをフォローしています' });
+            }
+        } catch (err) {
+            console.log(err);
+            return res.status(500).json(err);
+        }
+    } else {
+        return res.status(403).json({ message: '自分自身をフォローできません' });
+    }
+};
+
+exports.unfollowUser = async (req, res) => {
+    if (req.params.id !== req.body.userId) {
+        try {
+            const user = await User.findById(req.params.id);
+            const currnetUser = await User.findById(req.body.userId);
+            //フォロワーに存在したらフォローを外せる
+            if (user.followers.includes(req.body.userId)) {
+                await user.updateOne({
+                    $pull: {
+                        followers: req.body.userId,
+                    },
+                });
+                await currnetUser.updateOne({
+                    $pull: {
+                        followings: req.params.id,
+                    },
+                });
+                return res.status(200).json({ message: 'フォローを解除しました！' });
+            } else {
+                return res.status(403).json({ message: 'このユーザーはフォロー解除できません' });
+            }
+        } catch (err) {
+            console.log(err);
+            return res.status(500).json(err);
+        }
+    } else {
+        return res.status(403).json({ message: '自分自身をフォロー解除できません' });
+    }
+};
+
+exports.geFollowings = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        const followings = await Promise.all(
+            user.followings.map((friendId) => {
+                return User.findById(friendId);
+            })
+        );
+        const result = followings.map((friend) => {
+            const { _id, username, profilePicture, followers } = friend;
+            return { _id, username, profilePicture, followers };
+        })
+        return res.status(200).json(result);
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json(err);
     }
 };
