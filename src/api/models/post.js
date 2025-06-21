@@ -19,6 +19,17 @@ const PostSchema = new Schema({
         type: Array,
         default: [],
     },
+    comments: [
+        {
+            userId: String,
+            username: String,
+            text: String,
+            createdAt: {
+                type: Date,
+                default: Date.now,
+            },
+        },
+    ],
 }, { timestamps: true });
 
 module.exports = mongoose.model('Post', PostSchema);

@@ -117,3 +117,48 @@ exports.getProfileTimeline = async (req, res) => {
         return res.status(500).json(err);
     }
 };
+
+exports.creatComment = async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.id);
+        const user = await User.findById(req.body.userId);
+        const newPost = {
+            userId: user._id,
+            username: user.username,
+            text: req.body.text,
+        };
+        post.comments.push(newPost);
+        await post.save();
+        return res.status(200).json({ message: 'コメントを投稿しました' });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json(err);
+    }
+};
+
+exports.getComments = async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.id);
+        return res.status(200).json(post.comments);
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json(err);
+    }
+};
+
+exports.deleteComment = async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.id);
+        const comment = post.comments.id(req.params.commentId);
+        if (comment.userId === req.body.userId) {
+            post.comments.pull(req.params.commentId);
+            await post.save();
+            return res.status(200).json({ message: 'コメントを削除しました' });
+        } else {
+            return res.status(200).json({ message: '他の人のコメントを削除できません' });
+        }
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json(err);
+    }
+};

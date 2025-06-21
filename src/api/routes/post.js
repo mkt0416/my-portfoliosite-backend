@@ -26,4 +26,13 @@ router.get('/timeline/:userId', postControllers.getTimelinePosts);
 //プロフィール専用のタイムラインの取得
 router.get('/profile/:username', postControllers.getProfileTimeline);
 
+//コメントの投稿
+router.put('/:id/comment', postControllers.creatComment);
+
+//コメントの取得
+router.get('/:id/comments', postControllers.getComments);
+
+//コメントの削除
+router.delete('/:id/comment/:commentId', postControllers.deleteComment);
+
 module.exports = router;
