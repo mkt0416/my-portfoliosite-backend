@@ -8,6 +8,11 @@ const connectDB = require('./src/api/db/connect');
 
 app.use(cors());
 app.use(express.json());
+
+app.get('/', (req, res) => {
+    res.send('server is Running');
+});
+
 app.use('/', require('./src/api/routes'));
 
 const start = async () => {
