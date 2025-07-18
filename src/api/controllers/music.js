@@ -35,7 +35,9 @@ exports.getPopularSongs = async (req, res) => {
             },
         });
         const jsonData = await response.json();
-        return res.status(200).json(jsonData.tracks);
+
+        const items = jsonData?.tracks?.items ?? [];
+        return res.status(200).json({ items });
     } catch (err) {
         console.log(err);
         return res.status(500).json(err);
