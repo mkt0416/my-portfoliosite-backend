@@ -18,6 +18,7 @@ const getAccessToken = async () => {
         });
         const data = await response.json();
         accessToken = data.access_token;
+        console.log(accessToken);
     } catch (err) {
         console.log(err);
     }
