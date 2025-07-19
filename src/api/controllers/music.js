@@ -3,6 +3,7 @@ const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 
 let accessToken = null;
+let accessTokenExpiresAt = 0;
 
 const getAccessToken = async () => {
     try {
@@ -18,16 +19,22 @@ const getAccessToken = async () => {
         });
         const data = await response.json();
         accessToken = data.access_token;
+        accessTokenExpiresAt = Date.now() + data.expires_in * 1000;
         console.log(accessToken);
     } catch (err) {
         console.log(err);
     }
 };
 
-exports.getPopularSongs = async (req, res) => {
-    if (!accessToken) {
+const ensureAccessToken = async () => {
+    const now = Date.now();
+    if (!accessToken || now >= accessTokenExpiresAt) {
         await getAccessToken();
     }
+};
+
+exports.getPopularSongs = async (req, res) => {
+    await ensureAccessToken();
     try {
         const response = await fetch('https://api.spotify.com/v1/playlists/5SLPaOxQyJ8Ne9zpmTOvSe', {
             method: 'GET',
@@ -48,9 +55,7 @@ exports.getPopularSongs = async (req, res) => {
 exports.getSearchSongs = async (req, res) => {
     const { q, limit = '20', offset = '0' } = req.query;
 
-    if (!accessToken) {
-        await getAccessToken();
-    }
+    await ensureAccessToken();
     try {
         const response = await fetch('https://api.spotify.com/v1/search?' +
             new URLSearchParams({
