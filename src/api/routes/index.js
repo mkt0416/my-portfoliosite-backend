@@ -8,5 +8,6 @@ router.use('/memo', require('./memo'));
 router.use('/music', require('./music'));
 router.use('/upload', require('./uploard'));
 router.use('/chat', require('./chat'));
+router.use("/weather", require("./weather"));
 
 module.exports = router;
