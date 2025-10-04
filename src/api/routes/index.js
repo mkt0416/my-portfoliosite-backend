@@ -10,5 +10,7 @@ router.use('/upload', require('./uploard'));
 router.use('/chat', require('./chat'));
 router.use("/weather", require("./weather"));
 router.use("/news", require("./news"));
+router.use("/reverse-decode", require("./address"));
+router.use("/map", require("./map"));
 
 module.exports = router;
