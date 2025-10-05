@@ -4,7 +4,6 @@ const Map = require("../models/map");
 exports.readAllWorks = async (req, res) => {
     try {
         const { start, end, date, keyword } = req.query;
-
         const query = { user: req.user._id };
 
         // 期間検索
@@ -17,14 +16,10 @@ exports.readAllWorks = async (req, res) => {
             const startUTC = new Date(startDate.getTime() - 9 * 60 * 60 * 1000);
             const endUTC = new Date(endDate.getTime() - 9 * 60 * 60 * 1000);
 
-            const works = await Map.find({
-                createdAt: {
-                    $gte: startUTC,
-                    $lte: endUTC,
-                }
-            }).sort("-createdAt");
-
-            return res.status(200).json(works);
+            query.createdAt = {
+                $gte: startUTC,
+                $lte: endUTC,
+            };
         }
 
         // 単日検索
@@ -36,14 +31,10 @@ exports.readAllWorks = async (req, res) => {
             const startUTC = new Date(start.getTime() - 9 * 60 * 60 * 1000);
             const endUTC = new Date(end.getTime() - 9 * 60 * 60 * 1000);
 
-            const works = await Map.find({
-                createdAt: {
-                    $gte: startUTC,
-                    $lte: endUTC,
-                }
-            }).sort("-createdAt");
-
-            return res.status(200).json(works);
+            query.createdAt = {
+                $gte: startUTC,
+                $lte: endUTC,
+            };
         }
 
         // キーワード検索
@@ -58,7 +49,9 @@ exports.readAllWorks = async (req, res) => {
             ];
         }
 
-        const works = await Map.find(query).sort("-createdAt");
+        const works = await Map.find(query)
+            .sort("-createdAt");
+
         return res.status(200).json(works);
     } catch (err) {
         console.log(err);
