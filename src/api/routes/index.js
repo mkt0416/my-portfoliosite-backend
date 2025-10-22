@@ -12,5 +12,6 @@ router.use("/weather", require("./weather"));
 router.use("/news", require("./news"));
 router.use("/reverse-decode", require("./address"));
 router.use("/map", require("./map"));
+router.use("/lego", require("./lego"));
 
 module.exports = router;
