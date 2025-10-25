@@ -23,15 +23,6 @@ router.get("/minifigs/:figNum", legoControllers.getSingleMinifigs);
 // キーワード検索でミニフィグを取得
 router.get("/search/minifigs", legoControllers.searchFigs);
 
-// テーマからパーツを取得　
-router.get("/parts", legoControllers.getPartsByTheme);
-
-// 個別のテーマを取得
-router.get("/parts/:partNum", legoControllers.getSingleParts);
-
-// キーワード検索でミニフィグを取得
-router.get("/search/parts", legoControllers.searchParts);
-
 // ランダムなセットを取得
 router.get("/random/sets", legoControllers.getRandomSets);
 

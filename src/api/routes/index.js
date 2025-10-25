@@ -13,5 +13,6 @@ router.use("/news", require("./news"));
 router.use("/reverse-decode", require("./address"));
 router.use("/map", require("./map"));
 router.use("/lego", require("./lego"));
+router.use("/send-email", require("./mail"));
 
 module.exports = router;
